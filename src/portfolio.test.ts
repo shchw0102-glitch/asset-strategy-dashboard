@@ -69,12 +69,18 @@ describe("목표 배분", () => {
   it("합계 100%와 각 비중의 범위를 검증한다", () => {
     expect(validTargets(defaultTargets)).toBe(true);
     expect(
-      validTargets({ cash: 10.1, stock: 29.9, property: 50, other: 10 }),
+      validTargets({
+        cash: 10.1,
+        stock: 29.9,
+        property: 50,
+        other: 10,
+        crypto: 0,
+      }),
     ).toBe(true);
     expect(validTargets({ ...defaultTargets, cash: 0 })).toBe(false);
-    expect(validTargets({ cash: -1, stock: 31, property: 65, other: 5 })).toBe(
-      false,
-    );
+    expect(
+      validTargets({ cash: -1, stock: 31, property: 65, other: 5, crypto: 0 }),
+    ).toBe(false);
     expect(validTargets({ ...defaultTargets, stock: NaN })).toBe(false);
   });
 });

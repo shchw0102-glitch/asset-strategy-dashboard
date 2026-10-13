@@ -847,6 +847,7 @@ h1 {
   max-width: 180px;
 }
 .table-scroll {
+  position: relative;
   overflow: auto;
 }
 table {
@@ -1150,6 +1151,12 @@ td strong {
   color: #b5bbac;
 }
 .modal {
+  position: fixed;
+  inset: 18px 0;
+  margin: auto;
+  height: fit-content;
+  min-width: 0;
+  overscroll-behavior: contain;
   border: 1px solid #dce3d2;
   border-radius: 15px;
   padding: 0;
@@ -1183,6 +1190,7 @@ td strong {
   margin-bottom: 22px;
 }
 .field {
+  min-width: 0;
   display: block;
   font-size: 12px;
   color: #526248;
@@ -1218,7 +1226,7 @@ td strong {
 }
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 14px;
 }
 .form-grid .field {
@@ -1736,5 +1744,254 @@ td strong {
     scroll-behavior: auto !important;
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* Live quotation and financial-account support */
+.market-panel {
+  padding: 23px 24px;
+  margin-bottom: 24px;
+}
+.connection-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 5px;
+  padding: 5px 9px;
+  font-size: 10px;
+  color: #8d784f;
+  background: #f8f1df;
+  white-space: nowrap;
+}
+.connection-badge .status-dot {
+  background: #c3a163;
+}
+.connection-badge.connected {
+  background: #edf4e9;
+  color: #517443;
+}
+.connection-badge.connected .status-dot {
+  background: #709d60;
+}
+.market-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+.market-card {
+  border: 1px solid #e8ecdf;
+  border-radius: 8px;
+  padding: 16px 17px;
+  background: #fafbf6;
+}
+.market-name {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+}
+.market-name > span {
+  color: #8e9780;
+  font-size: 10px;
+}
+.market-price {
+  display: block;
+  font-size: 21px;
+  margin: 10px 0;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.6px;
+}
+.market-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  font-size: 11px;
+  flex-wrap: wrap;
+}
+.market-card-bottom small {
+  color: #9aa38d;
+  font-size: 9px;
+}
+.market-card-bottom .text-button {
+  font-size: 10px;
+}
+.cached-quote {
+  display: block;
+  margin-top: 6px;
+  font-size: 9px;
+  color: #9a8459;
+}
+.market-footnote {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  color: #8a957c;
+  margin-top: 16px;
+}
+.asset-icon.crypto {
+  background: #eef0f8;
+  color: #7b86b3;
+}
+.category-tag.crypto {
+  background: #eef0f8;
+  color: #737fa7;
+}
+.coin-fields {
+  background: #f5f7f0;
+  border: 1px solid #e6ebdc;
+  border-radius: 8px;
+  padding: 0 15px 15px;
+  margin-bottom: 18px;
+}
+.coin-help {
+  color: #899678;
+  font-size: 10px;
+  line-height: 1.8;
+}
+.live-value {
+  padding: 11px;
+  border-radius: 7px;
+  background: #eff4e9;
+  margin-top: 7px;
+  min-height: 69px;
+}
+.live-value strong {
+  font-size: 13px;
+  display: block;
+}
+.live-value span {
+  font-size: 9px;
+  color: #8a977b;
+  display: block;
+  margin-top: 4px;
+}
+.bank-panel {
+  padding: 26px;
+}
+.bank-unavailable {
+  font-size: 10px;
+  color: #8f7855;
+  padding: 5px 9px;
+  border-radius: 5px;
+  background: #f8f1df;
+  white-space: nowrap;
+}
+.bank-description {
+  font-size: 13px;
+  color: #7b8871;
+  line-height: 2;
+  margin: 22px 0;
+  word-break: keep-all;
+}
+.bank-alternative {
+  padding: 20px;
+  border: 1px solid #e4e9da;
+  border-radius: 8px;
+  background: #f5f7ef;
+}
+.bank-alternative > strong {
+  font-size: 14px;
+  font-weight: 550;
+}
+.bank-alternative > p {
+  font-size: 12px;
+  color: #849274;
+  margin-top: 8px;
+  line-height: 1.9;
+  word-break: keep-all;
+}
+.bank-source {
+  font-size: 11px;
+  color: #8b9680;
+  margin-top: 19px;
+  line-height: 1.9;
+}
+.bank-source a {
+  color: #617452;
+}
+.button {
+  text-decoration: none;
+}
+@media (max-width: 760px) {
+  .market-panel {
+    padding: 22px 18px;
+  }
+  .market-cards {
+    gap: 10px;
+  }
+  .market-card {
+    padding: 14px 12px;
+  }
+  .market-price {
+    font-size: 17px;
+  }
+  .market-card-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .bank-panel {
+    padding: 23px 19px;
+  }
+  .bank-description {
+    font-size: 12px;
+  }
+  .bank-unavailable {
+    font-size: 9px;
+  }
+  .market-footnote {
+    font-size: 9px;
+  }
+  .bank-panel h2 {
+    font-size: 15px;
+  }
+  .allocation-content {
+    min-height: 240px;
+  }
+}
+@media (max-width: 480px) {
+  .market-cards {
+    grid-template-columns: 1fr;
+  }
+  .market-card {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    column-gap: 12px;
+    align-items: center;
+  }
+  .market-name {
+    justify-content: flex-start;
+    gap: 7px;
+  }
+  .market-price {
+    margin: 0;
+    font-size: 18px;
+    text-align: right;
+  }
+  .market-card-bottom {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    margin-top: 8px;
+  }
+  .connection-badge {
+    font-size: 9px;
+    padding: 5px 7px;
+  }
+  .bank-panel .panel-heading {
+    align-items: flex-start;
+  }
+  .bank-panel h2 {
+    font-size: 14px;
+    max-width: 200px;
+    word-break: keep-all;
+  }
+  .bank-alternative {
+    padding: 17px;
   }
 }

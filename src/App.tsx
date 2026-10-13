@@ -25,8 +25,19 @@ import {
   type Portfolio,
   type Targets,
 } from "./portfolio";
+import { useUpbitQuotes } from "./useUpbitQuotes";
+import {
+  canApplyQuote,
+  marketName,
+  quoteIsFresh,
+  quotePrice,
+  upbitMarkets,
+  valuateAssets,
+  type Quotes,
+} from "./upbit";
+import MarketPanel from "./MarketPanel";
 
-type Page = "overview" | "assets" | "strategy" | "data";
+type Page = "overview" | "assets" | "strategy" | "data" | "connections";
 const pages: {
   id: Page;
   label: string;
@@ -54,6 +65,14 @@ const pages: {
     icon: "pie",
     title: "나에게 맞는 자산 균형",
     description: "목표 비중을 정하고 현재 자산과의 차이를 확인하세요.",
+  },
+  {
+    id: "connections",
+    label: "시세·계좌",
+    icon: "chart",
+    title: "실시간 시세와 계좌 관리",
+    description:
+      "업비트 시세를 연결하고 금융계좌의 연동 지원 범위를 확인하세요.",
   },
   {
     id: "data",
@@ -95,6 +114,12 @@ function Icon({ name, size = 20 }: { name: string; size?: number }) {
     gem: (
       <>
         <path d="m3 8 4-5h10l4 5-9 13L3 8Zm0 0h18M7 3l5 18 5-18" />
+      </>
+    ),
+    coin: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9 7h5a3 3 0 0 1 0 6H9m0-6v10h5a2 2 0 0 0 0-4M11 5v2m0 10v2" />
       </>
     ),
     pie: (
@@ -219,19 +244,55 @@ function AssetEditor({
   onClose,
   onSave,
   onDelete,
+  defaultCategory = "cash",
+  initialMarket = "KRW-BTC",
+  quotes,
+  live,
+  now,
+  onMarket,
 }: {
   asset: Asset | null;
   onClose: () => void;
   onSave: (asset: Asset) => void;
   onDelete: (id: string) => void;
+  defaultCategory?: Category;
+  initialMarket?: string;
+  quotes: Quotes;
+  live: boolean;
+  now: number;
+  onMarket: (market: string) => void;
 }) {
-  const [name, setName] = useState(asset?.name ?? "");
-  const [category, setCategory] = useState<Category>(asset?.category ?? "cash");
+  const [name, setName] = useState(
+    asset?.name ??
+      (defaultCategory === "crypto" ? marketName(initialMarket) : ""),
+  );
+  const [category, setCategory] = useState<Category>(
+    asset?.category ?? defaultCategory,
+  );
   const [cost, setCost] = useState(asset ? String(asset.cost) : "");
   const [value, setValue] = useState(asset ? String(asset.value) : "");
   const [note, setNote] = useState(asset?.note ?? "");
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [market, setMarket] = useState(asset?.pricing?.market ?? initialMarket);
+  const [quantity, setQuantity] = useState(
+    asset?.pricing ? String(asset.pricing.quantity) : "",
+  );
+  const [marketPricing, setMarketPricing] = useState(
+    !!asset?.pricing || (!asset && defaultCategory === "crypto"),
+  );
+  const linked = category === "crypto" && marketPricing;
+  const quote = quotes[market];
+  const fresh = live && quoteIsFresh(quote, now);
+  const calculated =
+    quote && quantity.trim()
+      ? Math.round(Number(quantity) * quote.price)
+      : null;
+  useEffect(() => {
+    if (linked) onMarket(market);
+    else onMarket("");
+    return () => onMarket("");
+  }, [linked, market, onMarket]);
   function submit(e: FormEvent) {
     e.preventDefault();
     const next = {
@@ -239,11 +300,28 @@ function AssetEditor({
       name: name.trim(),
       category,
       cost: Number(cost),
-      value: Number(value),
+      value: linked ? (calculated ?? 0) : Number(value),
       note: note.trim(),
+      ...(linked
+        ? {
+            pricing: {
+              kind: "upbit" as const,
+              market,
+              quantity: Number(quantity),
+            },
+          }
+        : {}),
     };
+    if (linked && (!fresh || !quantity.trim())) {
+      setError(
+        !fresh
+          ? "최신 업비트 시세를 받은 뒤 저장해 주세요. 연결이 안 되면 평가 방식을 직접 입력으로 바꿀 수 있습니다."
+          : "보유 수량을 입력해 주세요.",
+      );
+      return;
+    }
     const issue = assetError(next);
-    if (issue || !cost.trim() || !value.trim()) {
+    if (issue || !cost.trim() || (!linked && !value.trim())) {
       setError(issue || "원금과 현재 평가금액을 입력해 주세요.");
       return;
     }
@@ -283,14 +361,21 @@ function AssetEditor({
               maxLength={60}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="예: 월급 통장, 미국 ETF"
+              placeholder="예: 생활비 통장, 비트코인"
             />
           </label>
           <label className="field">
             자산 유형
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
+              onChange={(e) => {
+                const next = e.target.value as Category;
+                setCategory(next);
+                if (next === "crypto") {
+                  setMarketPricing(true);
+                  if (!name.trim()) setName(marketName(market));
+                }
+              }}
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -299,6 +384,63 @@ function AssetEditor({
               ))}
             </select>
           </label>
+          {category === "crypto" && (
+            <>
+              <label className="field">
+                평가 방식
+                <select
+                  value={marketPricing ? "upbit" : "manual"}
+                  onChange={(e) => setMarketPricing(e.target.value === "upbit")}
+                >
+                  <option value="upbit">업비트 실시간 시세</option>
+                  <option value="manual">평가금액 직접 입력</option>
+                </select>
+              </label>
+              {linked && (
+                <div className="coin-fields">
+                  <label className="field">
+                    업비트 코인
+                    <select
+                      value={market}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        if (!name || name === marketName(market))
+                          setName(marketName(next));
+                        setMarket(next);
+                      }}
+                    >
+                      {!upbitMarkets.some((m) => m.market === market) && (
+                        <option value={market}>{market} · 지원 중단</option>
+                      )}
+                      {upbitMarkets.map((m) => (
+                        <option key={m.market} value={m.market}>
+                          {m.name} ({m.market.replace("KRW-", "")})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="field">
+                    보유 수량
+                    <input
+                      required
+                      type="number"
+                      min="0"
+                      max="1000000000"
+                      step="any"
+                      inputMode="decimal"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      placeholder="예: 0.01"
+                    />
+                  </label>
+                  <p className="coin-help">
+                    업비트 보유 계좌는 연결하지 않습니다. 실제 보유 수량을 직접
+                    입력해 주세요.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
           <div className="form-grid">
             <label className="field">
               매입 원금 (원)
@@ -316,17 +458,32 @@ function AssetEditor({
             </label>
             <label className="field">
               현재 평가금액 (원)
-              <input
-                required
-                type="number"
-                min="0"
-                max={maxAmount}
-                step="1"
-                inputMode="numeric"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                placeholder="0"
-              />
+              {linked ? (
+                <div className="live-value">
+                  <strong>
+                    {calculated !== null && Number.isFinite(calculated)
+                      ? money(calculated)
+                      : "시세 수신 대기 중"}
+                  </strong>
+                  <span>
+                    {quote
+                      ? `1 ${market.replace("KRW-", "")} = ${quotePrice(quote.price)} · ${fresh ? "실시간" : "이전 시세"}`
+                      : "시세를 연결하고 있습니다."}
+                  </span>
+                </div>
+              ) : (
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  max={maxAmount}
+                  step="1"
+                  inputMode="numeric"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  placeholder="0"
+                />
+              )}
             </label>
           </div>
           <label className="field">
@@ -488,7 +645,21 @@ export default function App() {
   const [portfolio, setPortfolio] = useState(initial.portfolio);
   const [warning, setWarning] = useState(initial.warning);
   const [page, setPage] = useState<Page>("overview");
-  const [editor, setEditor] = useState<{ asset: Asset | null } | null>(null);
+  const [editor, setEditor] = useState<{
+    asset: Asset | null;
+    defaultCategory?: Category;
+    initialMarket?: string;
+  } | null>(null);
+  const [editorMarket, setEditorMarket] = useState("");
+  const {
+    quotes,
+    status: quoteStatus,
+    now,
+  } = useUpbitQuotes([
+    ...portfolio.assets.flatMap((a) => (a.pricing ? [a.pricing.market] : [])),
+    editorMarket,
+  ]);
+  const evaluatedAssets = valuateAssets(portfolio.assets, quotes);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [toast, setToast] = useState("");
@@ -498,10 +669,10 @@ export default function App() {
     portfolio: Portfolio;
   } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
-  const stats = totals(portfolio.assets);
-  const shares = allocation(portfolio.assets, portfolio.targets);
+  const stats = totals(evaluatedAssets);
+  const shares = allocation(evaluatedAssets, portfolio.targets);
   const currentPage = pages.find((p) => p.id === page)!;
-  const filtered = portfolio.assets.filter(
+  const filtered = evaluatedAssets.filter(
     (a) =>
       (filter === "all" || a.category === filter) &&
       `${a.name} ${a.note}`
@@ -554,9 +725,12 @@ export default function App() {
     setEditor(null);
   }
   function exportData() {
-    const blob = new Blob([JSON.stringify(portfolio, null, 2)], {
-      type: "application/json",
-    });
+    const blob = new Blob(
+      [JSON.stringify({ ...portfolio, assets: evaluatedAssets }, null, 2)],
+      {
+        type: "application/json",
+      },
+    );
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -667,7 +841,9 @@ export default function App() {
                       <div>
                         <strong>{a.name}</strong>
                         <span className="asset-note">
-                          {a.note || "메모 없음"}
+                          {a.pricing
+                            ? `${a.pricing.market.replace("KRW-", "")} · ${a.pricing.quantity}개 · ${quoteStatus === "live" && quoteIsFresh(quotes[a.pricing.market], now) && canApplyQuote(a, quotes[a.pricing.market]) ? "업비트 실시간" : "마지막 확인 금액"}`
+                            : a.note || "메모 없음"}
                         </span>
                       </div>
                     </div>
@@ -732,7 +908,9 @@ export default function App() {
           {filtered.length}개 자산
           {filter !== "all" || query ? " · 필터 적용 중" : ""}
         </span>
-        <span>평가금액은 직접 입력한 금액입니다.</span>
+        <span>
+          연동 코인은 업비트 시세, 그 외 자산은 직접 입력한 금액입니다.
+        </span>
       </div>
     </section>
   );
@@ -833,6 +1011,21 @@ export default function App() {
               <span>{warning}</span>
             </div>
           )}
+          {portfolio.assets.some(
+            (a) =>
+              a.pricing &&
+              (quoteStatus !== "live" ||
+                !quoteIsFresh(quotes[a.pricing.market], now) ||
+                !canApplyQuote(a, quotes[a.pricing.market])),
+          ) && (
+            <div className="warning-banner" role="status">
+              <Icon name="info" />
+              <span>
+                일부 코인에 최신 시세를 적용하지 못했습니다. 코인 평가에는
+                마지막 확인 시세·금액을 사용합니다.
+              </span>
+            </div>
+          )}
           {portfolio.isDemo && (
             <div className="demo-banner">
               <div>
@@ -925,6 +1118,18 @@ export default function App() {
           )}
           {page === "overview" && (
             <>
+              <MarketPanel
+                quotes={quotes}
+                status={quoteStatus}
+                now={now}
+                onAdd={(market) =>
+                  setEditor({
+                    asset: null,
+                    defaultCategory: "crypto",
+                    initialMarket: market,
+                  })
+                }
+              />
               <div className="overview-grid">
                 <section className="panel allocation-panel">
                   <div className="panel-heading">
@@ -1035,6 +1240,70 @@ export default function App() {
             </>
           )}
           {page === "assets" && holdings}
+          {page === "connections" && (
+            <>
+              <MarketPanel
+                quotes={quotes}
+                status={quoteStatus}
+                now={now}
+                onAdd={(market) =>
+                  setEditor({
+                    asset: null,
+                    defaultCategory: "crypto",
+                    initialMarket: market,
+                  })
+                }
+              />
+              <section className="panel bank-panel">
+                <div className="panel-heading">
+                  <div>
+                    <span className="eyebrow">FINANCIAL ACCOUNTS</span>
+                    <h2>네이버페이 금융계좌 가져오기</h2>
+                  </div>
+                  <span className="bank-unavailable">자동 연동 미지원</span>
+                </div>
+                <p className="bank-description">
+                  네이버페이 공개 개발자 문서에서 개인 계좌·잔액을 가져오는
+                  API는 확인되지 않았습니다. 현재 이 앱에서는 네이버페이
+                  로그인으로 계좌를 자동으로 불러올 수 없습니다.
+                </p>
+                <div className="bank-alternative">
+                  <strong>지금은 이렇게 기록해 주세요</strong>
+                  <p>
+                    네이버페이에서 계좌 잔액을 확인한 뒤, 계좌별명과 잔액을 직접
+                    등록할 수 있습니다.
+                  </p>
+                  <div className="data-actions">
+                    <a
+                      className="button secondary"
+                      href="https://pay.naver.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      네이버페이 열기 ↗
+                    </a>
+                    <button
+                      className="button primary"
+                      onClick={() => setEditor({ asset: null })}
+                    >
+                      계좌 잔액 직접 추가
+                    </button>
+                  </div>
+                </div>
+                <p className="bank-source">
+                  자동 연동은 승인된 금융정보 제공 서비스와 별도 연결 절차가
+                  필요합니다.{" "}
+                  <a
+                    href="https://developers.pay.naver.com/docs/v2/api"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    네이버페이 공식 API 안내 ↗
+                  </a>
+                </p>
+              </section>
+            </>
+          )}
           {page === "strategy" && (
             <div className="strategy-grid">
               <TargetEditor
@@ -1149,9 +1418,10 @@ export default function App() {
               <section className="panel data-info">
                 <h2>나만의 기록을 시작하세요</h2>
                 <p>
-                  자산 데이터는 이 기기의 현재 브라우저에 저장됩니다. 계좌
-                  연결이나 실시간 시세 기능은 없으며, 모든 금액은 직접
-                  입력합니다. 다른 기기로 옮길 때는 백업 파일을 사용하세요.
+                  자산 데이터는 이 기기의 현재 브라우저에 저장됩니다. 가상자산은
+                  보유 수량을 입력하면 업비트 원화 시세로 자동 평가됩니다.
+                  금융계좌는 아직 자동 연결되지 않아 잔액을 직접 입력해야
+                  합니다. 다른 기기로 옮길 때는 백업 파일을 사용하세요.
                 </p>
                 <div className="data-actions">
                   <button
@@ -1198,6 +1468,12 @@ export default function App() {
       {editor && (
         <AssetEditor
           asset={editor.asset}
+          defaultCategory={editor.defaultCategory}
+          initialMarket={editor.initialMarket}
+          quotes={quotes}
+          live={quoteStatus === "live"}
+          now={now}
+          onMarket={setEditorMarket}
           onClose={() => setEditor(null)}
           onSave={saveAsset}
           onDelete={(id) => {

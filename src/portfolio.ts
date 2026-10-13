@@ -1,6 +1,7 @@
 export const categories = [
   { id: "cash", label: "현금·예금", color: "#7d9c78", icon: "wallet" },
   { id: "stock", label: "주식·ETF", color: "#d5aa65", icon: "chart" },
+  { id: "crypto", label: "가상자산", color: "#7b86b3", icon: "coin" },
   { id: "property", label: "부동산", color: "#344d3c", icon: "home" },
   { id: "other", label: "기타 자산", color: "#9b9da7", icon: "gem" },
 ] as const;
@@ -14,6 +15,7 @@ export type Asset = {
   cost: number;
   value: number;
   note: string;
+  pricing?: { kind: "upbit"; market: string; quantity: number };
 };
 export type Portfolio = {
   version: 1;
@@ -26,6 +28,7 @@ export const maxAmount = 9_000_000_000_000;
 export const defaultTargets: Targets = {
   cash: 15,
   stock: 30,
+  crypto: 0,
   property: 50,
   other: 5,
 };
@@ -140,6 +143,23 @@ export function assetError(asset: Omit<Asset, "id">): string | null {
     return "금액은 0원부터 9조 원까지, 원 단위 정수로 입력해 주세요.";
   }
   if (asset.note.length > 200) return "메모는 200자 이내로 입력해 주세요.";
+  if (asset.pricing !== undefined) {
+    const p = asset.pricing;
+    if (
+      !p ||
+      p.kind !== "upbit" ||
+      asset.category !== "crypto" ||
+      typeof p.market !== "string" ||
+      !/^KRW-[A-Z0-9]{1,20}$/.test(p.market)
+    )
+      return "업비트 원화 마켓의 가상자산을 선택해 주세요.";
+    if (
+      !Number.isFinite(p.quantity) ||
+      p.quantity < 0 ||
+      p.quantity > 1_000_000_000
+    )
+      return "보유 수량은 0 이상 10억 이하의 숫자로 입력해 주세요.";
+  }
   return null;
 }
 
@@ -148,12 +168,16 @@ export function parsePortfolio(text: string): Portfolio {
   if (!data || typeof data !== "object")
     throw new Error("올바른 백업 파일이 아닙니다.");
   const p = data as Portfolio;
+  const targets = p.targets && {
+    ...p.targets,
+    crypto: p.targets.crypto === undefined ? 0 : p.targets.crypto,
+  };
   if (
     p.version !== 1 ||
     typeof p.isDemo !== "boolean" ||
     !Array.isArray(p.assets) ||
     !p.targets ||
-    !validTargets(p.targets) ||
+    !validTargets(targets) ||
     p.assets.length > 1000
   ) {
     throw new Error("지원하지 않는 형식이거나 자산 배분이 올바르지 않습니다.");
@@ -177,7 +201,7 @@ export function parsePortfolio(text: string): Portfolio {
     version: 1,
     isDemo: p.isDemo,
     targets: Object.fromEntries(
-      categories.map((c) => [c.id, p.targets[c.id]]),
+      categories.map((c) => [c.id, targets[c.id]]),
     ) as Targets,
     assets: p.assets.map((a) => ({
       id: a.id,
@@ -186,6 +210,15 @@ export function parsePortfolio(text: string): Portfolio {
       cost: a.cost,
       value: a.value,
       note: a.note,
+      ...(a.pricing
+        ? {
+            pricing: {
+              kind: "upbit" as const,
+              market: a.pricing.market,
+              quantity: a.pricing.quantity,
+            },
+          }
+        : {}),
     })),
   };
 }
