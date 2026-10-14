@@ -7,3 +7,11 @@ dist/
 *.log
 coverage/
 .DS_Store
+
+# Android generated files and private signing material
+android/.gradle/
+android/**/build/
+android/local.properties
+android/app/src/main/assets/public/
+*.jks
+*.keystore

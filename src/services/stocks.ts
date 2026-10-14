@@ -1,3 +1,4 @@
+import { stockSnapshot } from "./quoteTransport";
 import type { StockHolding } from "../strategy/types";
 export const validStockSymbol = (symbol: unknown): symbol is string => typeof symbol === "string" &&
   /^(?:[A-Z]{1,10}(?:[.-][A-Z]{1,2})?|[0-9]{6}\.K[QS])$/.test(symbol);
@@ -45,9 +46,7 @@ export function readStockCache(): StockQuotes {
 export async function fetchStock(symbol: string, signal?: AbortSignal): Promise<{ quote: StockQuote | null; error: string | null }> {
   if (!validStockSymbol(symbol)) throw new Error("종목코드를 확인하세요.");
   if (location.protocol === "file:") throw new Error("실행하기.cmd 또는 start-android.sh로 앱을 실행해야 주가를 조회할 수 있습니다.");
-  const response = await fetch(`/api/stocks?symbol=${encodeURIComponent(symbol)}`, { signal });
-  if (!response.ok) throw new Error(`시세 서버 응답 오류 (${response.status})`);
-  const data = await response.json();
+  const data = await stockSnapshot(symbol, signal);
   if (!data.quote && typeof data.error === "string") return { quote: null, error: data.error };
   if (!validStockQuote(data.quote, symbol)) throw new Error("종목·통화·시세 응답을 검증하지 못했습니다.");
   return { quote: data.quote, error: typeof data.error === "string" ? data.error : null };

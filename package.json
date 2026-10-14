@@ -13,7 +13,10 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "start": "node scripts/run.mjs"
+    "start": "node scripts/run.mjs",
+    "android:prepare": "npm run build && node scripts/android-assets.mjs",
+    "android:debug": "npm run android:prepare && cd android && ./gradlew assembleDebug",
+    "android:bundle": "npm run android:prepare && cd android && ./gradlew bundleRelease"
   },
   "dependencies": {
     "react": "19.3.0",

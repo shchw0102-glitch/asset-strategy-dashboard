@@ -1,0 +1,1 @@
+export function createMarketService(options?: { fetcher?: typeof fetch; clock?: () => number }): { snapshot(): Promise<{version: number; quotes: Record<string, {quote: unknown; error: string | null}>}> };

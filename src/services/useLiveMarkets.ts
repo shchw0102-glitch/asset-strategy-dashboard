@@ -1,3 +1,5 @@
+import { isAndroidApp } from "./android";
+import { marketSnapshot } from "./quoteTransport";
 import { newId } from "./id";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -86,13 +88,7 @@ export function useLiveMarkets(modes: MarketModes) {
       controller = new AbortController();
       const timeout = setTimeout(() => controller?.abort(), 20_000);
       try {
-        const response = await fetch("./api/market", {
-          signal: controller.signal,
-          cache: "no-store",
-          headers: { Accept: "application/json" },
-        });
-        if (!response.ok) throw new Error(`시세 서버 응답 ${response.status}`);
-        const data = await response.json();
+        const data = await marketSnapshot(controller.signal);
         if (data.version !== 1 || !data.quotes)
           throw new Error(
             "시세 서버가 없는 실행 방식입니다. 실행하기.cmd 또는 npm start를 이용하세요.",
@@ -111,7 +107,7 @@ export function useLiveMarkets(modes: MarketModes) {
       } catch (error) {
         if (stopped) return;
         failures++;
-        const detail =
+        const detail = isAndroidApp() ? "시세 제공처 연결 실패 · 인터넷을 확인하세요. 마지막 조회값을 유지합니다." :
           error instanceof SyntaxError
             ? "시세 서버가 없습니다. 전체 프로젝트를 실행하기.cmd 또는 npm start로 실행하세요."
             : "시세 서버 연결 실패 · 인터넷과 실행창을 확인하세요.";

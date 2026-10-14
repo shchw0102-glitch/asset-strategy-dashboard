@@ -1,0 +1,34 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.assetstrategy.dashboard'
+    compileSdk 35
+    buildFeatures { buildConfig true }
+    defaultConfig {
+        applicationId 'com.assetstrategy.dashboard'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+    }
+    signingConfigs {
+        if (System.getenv('ASD_RELEASE_KEYSTORE')) {
+            release {
+                storeFile file(System.getenv('ASD_RELEASE_KEYSTORE'))
+                storePassword System.getenv('ASD_RELEASE_STORE_PASSWORD')
+                keyAlias System.getenv('ASD_RELEASE_KEY_ALIAS')
+                keyPassword System.getenv('ASD_RELEASE_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (System.getenv('ASD_RELEASE_KEYSTORE')) signingConfig signingConfigs.release
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+dependencies { testImplementation 'junit:junit:4.13.2' }

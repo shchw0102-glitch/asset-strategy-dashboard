@@ -1,135 +1,69 @@
-# 안드로이드폰에서 사용하기
+# Android 설치형 APK
 
-이 ZIP에는 휴대폰용 화면, 실행 도우미, 시세 서버, 빌드된 앱이 함께 들어 있습니다. Chrome에서 사용합니다. 기존 자산·대출·7개 시뮬레이터와 자동 시세 기능을 모두 사용할 수 있습니다.
+이 버전은 React 화면과 계산 코드를 APK 안에 포함한 실제 Android 앱입니다. **실행에 PC, Node.js, Termux 또는 별도 서버가 필요하지 않습니다.** Android 8.0 이상과 최신 Android System WebView/Chrome을 권장합니다. 인터넷 없이 계산·입력·저장·백업이 동작하며 시세 조회에만 인터넷이 필요합니다.
 
-| 상황                                     | 사용할 방법                                        |
-| ---------------------------------------- | -------------------------------------------------- |
-| Windows PC가 있고 같은 Wi-Fi에서 사용    | **방법 A: 가장 간단함. 휴대폰에는 앱 설치 불필요** |
-| PC 없이 휴대폰만 사용하거나 외출 중 사용 | **방법 B: Termux에서 폰 자체로 실행**              |
+## 휴대폰에 설치하기
 
-## 방법 A. PC에서 실행하고 휴대폰으로 접속
+1. 제공된 `app-debug.apk`를 휴대폰에 내려받습니다.
+2. ‘내 파일 → 다운로드’에서 APK를 누릅니다.
+3. Android가 묻는 경우 다운로드에 사용한 앱의 **이 출처의 앱 설치 허용**을 켭니다.
+4. **설치 → 열기**를 누릅니다. 홈 화면의 **Asset Strategy** 아이콘으로 다시 실행할 수 있습니다.
 
-### 1) PC에서 준비
+디버그 서명 APK이며 Play Store 배포용은 아닙니다. 동일한 앱 ID와 서명키로 만든 새 APK는 덮어 설치해 데이터를 유지합니다. 서명이 다르다는 오류가 나면 먼저 기존 앱에서 JSON 백업을 보관하세요. 앱 삭제 또는 Android 설정의 ‘데이터 삭제’는 저장값을 지웁니다.
 
-1. PC에 [Node.js 24 LTS](https://nodejs.org/)를 설치합니다. 이미 24.10 이상이면 다시 설치하지 않아도 됩니다.
-2. `Asset-Strategy-Dashboard-Android.zip`을 PC에 내려받습니다.
-3. 파일을 오른쪽 클릭해 **모두 압축 풀기**를 선택합니다.
-4. 안쪽 `asset-strategy-dashboard` 폴더에서 **`휴대폰연결.cmd`를 더블클릭**합니다.
-5. 실행창에 **`휴대폰 접속 주소: ...`**가 나옵니다. 이 주소를 확인하세요. 화면에 여러 주소가 나오면 연결 중인 Wi-Fi의 주소를 사용하세요. 잘 모르겠다면 표시된 주소를 차례로 시도하세요.
+## 기존 기록 옮기기
 
-최종 ZIP에 빌드 파일이 포함되어 있어 Node.js 외에 따로 설치할 패키지가 없습니다. 화면을 수정한 소스를 사용하는 경우에는 `npm ci`와 `npm run build`를 먼저 실행해야 합니다.
+Chrome/PC/Termux의 웹 저장소와 APK 저장소는 Android 보안 정책상 별개입니다. 기존 앱 아래 **JSON 백업**으로 파일을 저장하고 APK의 **백업 복원**에서 선택하세요. v1 형식, 수량, 대출, 시나리오, 수동 가격과 자동 모드를 유지하며 기존 연금 항목만 제외합니다. 기존 웹 기록을 삭제하지 않습니다.
 
-### 2) 휴대폰에서 열기
+APK의 **JSON 백업**은 Android 파일 저장 창을 엽니다. Downloads 등 원하는 위치를 선택하세요. 복원은 Android 파일 선택 창에서 JSON을 고른 뒤 기존 검증 함수를 거칩니다. 자동 조회 가격 캐시는 백업과 별개이므로 복원 후 다시 조회합니다.
 
-1. **PC와 휴대폰을 같은 Wi-Fi에 연결**합니다. PC가 공유기에 유선으로 연결되어 있어도 같은 공유기 네트워크라면 가능합니다.
-2. 휴대폰에서 **Chrome**을 엽니다.
-3. PC 실행창에 표시된 **휴대폰 접속 주소 전체**를 주소창에 입력합니다. 앞의 `http://`와 끝의 `:5173`도 포함하세요. 주소를 검색창에서 검색하지 말고 주소창에 입력합니다.
-4. 자산 현황이 나오면 완료입니다. 위쪽 **시세·자동 반영 설정**을 누르면 실제 조회 시각과 자동/수동 전환을 볼 수 있습니다.
-5. 사용 중에는 **PC와 실행창을 켜 두세요.** PC가 절전 모드가 되면 조회가 끊깁니다.
+## 보존된 기능
 
-PC 화면에 함께 나오는 `localhost` 주소는 휴대폰에 입력하지 마세요. 방법 A에서는 반드시 **휴대폰 접속 주소**를 사용합니다.
+자산·부채·순자산·목표 달성률, CNTN/CC 시뮬레이터, 분할매도, 대출, 레버리지, 아파트 비교, 5년 전망, 미국/국내 주식·ETF 추가, JSON 백업·복원, 모바일 메뉴를 그대로 사용합니다. 주식 추가는 **내 자산 → 내 주식 추가·관리**에서 거래소·코드·수량을 입력하세요.
 
-### 연결이 안 될 때
+## 시세 구조
 
-- PC에서 기존 `실행하기.cmd`가 켜져 있다면 `Ctrl+C`로 종료하고 **`휴대폰연결.cmd`**를 실행하세요. 일반 실행은 PC에서만 접속하도록 설정되어 있습니다.
-- 휴대폰이 LTE/5G 또는 게스트 Wi-Fi를 사용 중인지 확인하세요. 같은 공유기의 일반 Wi-Fi로 바꾸세요.
-- Windows 방화벽이 Node.js 연결 허용을 묻는다면 **사용 중인 개인 네트워크**에 허용하세요. 방화벽 전체를 끌 필요는 없습니다.
-- 회사/호텔/게스트 Wi-Fi는 기기끼리의 접속을 차단할 수 있습니다. 이 경우 방법 B를 사용하세요.
-- PC를 다시 켰을 때 IP 주소가 바뀔 수 있습니다. 새 실행창의 주소를 확인하세요.
-- 공유기 포트 포워딩은 필요하지 않습니다. 이 방식은 같은 네트워크 안에서 사용하는 방법입니다. 밖에서 LTE/5G로 사용하려면 방법 B를 사용하세요.
+- 화면은 앱 내 assets에서 읽습니다. 웹사이트를 원격으로 불러오거나 Node 서버를 실행하지 않습니다.
+- Yahoo의 CNTN·미국/국내 주식·ETF·USD/KRW와 Upbit REST 조회는 Android `HttpsURLConnection`으로 직접 전송합니다. CORS 우회용 외부 서버나 API 키가 없습니다.
+- 기존 `server/market.mjs`와 `server/stocks.mjs`의 순수 제공처 모듈을 앱 번들에서도 재사용합니다. 같은 응답 검증, 캐시, 동시 요청 제한, 보조 Yahoo 호스트를 사용합니다. Node HTTP 서버 파일은 APK에 포함하지 않습니다.
+- Upbit WebSocket은 기존 연결을 유지하며 실패 시 네이티브 REST 조회로 보완합니다.
+- 주식은 약60초마다 최근 정규장 가격을 조회합니다. 제공처 지연·휴장·요청 제한이 있을 수 있습니다. 시각과 실패 상태를 표시하고 마지막 시세 또는 수동값으로 계산합니다.
+- APK에 계좌 비밀번호·API 키가 없으며 외부로 보내는 것은 종목 조회뿐입니다. 개인정보가 포함된 자산 JSON은 사용자가 선택한 파일에만 저장됩니다.
 
-## 방법 B. PC 없이 안드로이드폰에서 직접 실행
+## 개발자: 재현 가능한 빌드
 
-첫 설정 때만 아래 명령을 입력하면 됩니다. 이후에는 두 줄로 다시 실행할 수 있습니다.
-
-### 1) Termux와 ZIP 준비
-
-1. 휴대폰에서 [F-Droid의 Termux 공식 배포 페이지](https://f-droid.org/packages/com.termux/)를 열고 Termux를 설치합니다. 공식 설치 안내는 [Termux 프로젝트](https://github.com/termux/termux-app#installation)에서도 볼 수 있습니다.
-2. `Asset-Strategy-Dashboard-Android.zip`을 휴대폰의 **다운로드(Download)** 폴더에 저장합니다. 파일 이름이 뒤에 `(1)` 등이 붙었다면 위 이름으로 바꾸세요.
-3. **Termux** 앱을 엽니다. 검은 화면은 명령을 입력하는 화면입니다.
-
-### 2) 처음 한 번 설정
-
-다음 명령을 **한 줄씩** 복사해 Termux에 붙여 넣고 Enter를 누릅니다. 설치 확인 질문에는 `y`를 입력합니다.
+필수: Node.js24.10+, JDK17 또는 전체 JDK21, Android SDK Platform35, Build Tools35.0.0. Android Studio SDK Manager에서 설치할 수 있습니다. Gradle Wrapper는8.11.1, Android Gradle Plugin은8.9.2입니다.
 
 ```sh
-pkg update
-pkg install nodejs-lts unzip
-termux-setup-storage
+npm ci
+npm test
+npm run android:prepare
+cd android
+# Android Studio가 생성하거나 직접 local.properties에 sdk.dir=<SDK 경로> 지정
+./gradlew assembleDebug
+./gradlew bundleRelease
 ```
 
-`termux-setup-storage` 뒤에 Android가 파일 접근 권한을 물으면 다운로드한 ZIP을 읽을 수 있도록 허용하세요. 그런 다음 이어서 실행합니다.
+Windows에서는 `gradlew.bat assembleDebug` 및 `gradlew.bat bundleRelease`를 사용합니다. macOS/Linux에서는 `npm run android:debug`와 `npm run android:bundle`도 가능합니다.
 
-```sh
-mkdir -p ~/asset-strategy
-unzip ~/storage/downloads/Asset-Strategy-Dashboard-Android.zip -d ~/asset-strategy
-cd ~/asset-strategy/asset-strategy-dashboard
-bash start-android.sh
-```
+산출물:
 
-앱이 시작되면 실행창에 주소가 나옵니다. Termux를 종료하지 말고 **Chrome으로 전환하여 실행창의 주소를 주소창에 입력**합니다. 기본 주소는 `http://localhost:5173`입니다. 방법 B에서는 서버도 휴대폰 안에 있으므로 이 주소가 맞습니다.
+- 설치 APK: `android/app/build/outputs/apk/debug/app-debug.apk`
+- release AAB: `android/app/build/outputs/bundle/release/app-release.aab`
 
-### 3) 다음에 다시 실행하기
+기본 release AAB는 **서명되지 않습니다**. Play Console 제출은 본인의 업로드 키로 서명해야 합니다. 다음 환경변수를 설정하면 release 빌드가 서명을 적용합니다: `ASD_RELEASE_KEYSTORE`(절대 경로), `ASD_RELEASE_STORE_PASSWORD`, `ASD_RELEASE_KEY_ALIAS`, `ASD_RELEASE_KEY_PASSWORD`. 키·비밀번호를 Git에 넣지 마세요. 같은 서명키를 안전하게 보관해야 이후 업데이트를 설치할 수 있습니다.
 
-Termux를 열고 아래 두 줄을 실행한 뒤 Chrome에서 같은 주소를 엽니다.
+웹 소스 수정 후에는 반드시 `npm run android:prepare`로 assets를 갱신한 다음 Gradle을 실행하세요. 앱 ID `com.assetstrategy.dashboard`, 로컬 origin `https://appassets.androidplatform.net`과 localStorage 키는 업데이트 시 유지해야 합니다.
 
-```sh
-cd ~/asset-strategy/asset-strategy-dashboard
-bash start-android.sh
-```
+## 웹 버전
 
-종료는 Termux에서 `Ctrl+C`입니다. Termux 하단의 `CTRL` 키를 누른 뒤 `c`를 입력해도 됩니다.
+PC/브라우저 실행 방식은 그대로 지원합니다. 이전 Wi-Fi 및 Termux 안내는 [ANDROID-WEB.md](ANDROID-WEB.md)에 보존했습니다. APK 사용자에게는 필요하지 않습니다.
 
-### 휴대폰 단독 실행 문제 해결
+## 이번 빌드 검증 결과
 
-- **Node 버전이 낮다고 나옴:** `pkg upgrade`를 실행하고 재시도합니다. 앱은 Node.js 24.10 이상이 필요합니다.
-- **ZIP을 찾을 수 없다고 나옴:** 휴대폰 내 파일 앱에서 ZIP이 Download 폴더에 있는지, 이름이 정확한지 확인하세요. `termux-setup-storage` 파일 권한도 확인하세요.
-- **이미 파일이 있다고 나옴:** 첫 설정의 압축 해제를 매번 할 필요는 없습니다. ‘다음에 다시 실행하기’ 두 줄만 사용하세요.
-- **Chrome으로 바꾼 후 서버가 종료됨:** Android 설정에서 Termux의 배터리/백그라운드 사용 제한을 완화하세요. 기기별 메뉴 이름은 다를 수 있습니다. Termux 앱을 강제 종료하지 마세요.
-- **이미 포트를 사용 중이라고 나옴:** 기존 Termux 실행 세션이 켜져 있는지 확인하고, 이미 켜진 서버를 사용하거나 먼저 종료하세요.
-- **시세 조회가 실패함:** 인터넷 연결과 시세 카드의 오류 설명을 확인하세요. 수동 모드에서는 연결 없이 계산할 수 있습니다. Node 인증서 검증을 끄지 마세요.
-
-이 실행 스크립트는 Linux 환경에서 검증했고, Android 화면과 LAN 동작은 Chromium의 휴대폰 에뮬레이션에서 검증했습니다. 실제 Termux의 패키지 버전 및 백그라운드 동작은 휴대폰 환경에 따라 달라질 수 있습니다.
-
-## 최신 버전으로 바꾸기
-
-1. 기존 앱 아래에서 **JSON 백업**을 내려받습니다.
-2. 켜져 있는 앱 서버를 `Ctrl+C`로 종료합니다.
-3. 새 ZIP을 다시 내려받아 압축을 풉니다. PC에서는 새 폴더의 `휴대폰연결.cmd`를 실행합니다.
-4. Termux에서 기존 폴더를 업데이트하려면 새 ZIP 이름을 `Asset-Strategy-Dashboard-Android.zip`으로 맞춘 뒤 다음을 실행합니다.
-
-```sh
-unzip -o ~/storage/downloads/Asset-Strategy-Dashboard-Android.zip -d ~/asset-strategy
-cd ~/asset-strategy/asset-strategy-dashboard
-bash start-android.sh
-```
-
-5. Chrome에서 기존 주소를 새로고침합니다. 같은 주소·브라우저면 기록이 유지됩니다. 주소가 달라졌다면 JSON 백업을 복원합니다. 연금저축·IRP는 최신 버전에서 금액도 제외됩니다.
-
-## 휴대폰에서 주식 추가하기
-
-1. 아래 **내 자산**을 누르고 **내 주식 추가·관리**를 찾습니다.
-2. 거래소와 종목코드를 입력합니다. 애플은 **미국 / AAPL**, 삼성전자는 **국내 코스피 / 005930**입니다.
-3. 보유 수량을 입력하고 **시세 조회 후 추가**를 누릅니다.
-4. 종목 카드에 가격과 원화 평가액이 나오면 총자산·순자산에도 반영됩니다. 수량 수정과 삭제도 카드에서 할 수 있습니다.
-
-주식은 Yahoo Finance의 최근 정규장 가격을 약 60초마다 조회합니다. 거래소 실시간 시세를 보장하지 않으며 장외·휴장·지연 상태와 조회 시각을 표시합니다. 업비트 CC 실시간 연결은 기존대로 유지합니다.
-
-## 휴대폰 화면 사용법
-
-- **아래 고정 메뉴:** 내 자산 / 시뮬레이션 / 아파트 / 전체 메뉴
-- **전체 메뉴:** 분할매도, 대출 관리, 레버리지, 순자산 전망 등 7개 화면으로 이동합니다.
-- **시세 카드:** 처음에는 접혀 있습니다. ‘시세·자동 반영 설정’을 누르면 펼쳐집니다. 미조회·지연 상태는 접힌 상태에서도 표시합니다.
-- **숫자 입력:** 큰 입력칸을 눌러 수정하세요. 자동 가격이 잠겨 있다면 시세 카드에서 해당 자산을 수동 입력으로 전환하세요.
-- **큰 표:** 좌우로 밀어 나머지 열을 확인하세요. 첫 번째 열은 고정됩니다.
-- **홈 화면 바로가기:** Chrome 우측 상단 `⋮` → **홈 화면에 추가**를 선택합니다. 기기에 따라 ‘바로가기 만들기’로 표시됩니다. 실행 아이콘을 만들어도 서버는 위 방법으로 켜져 있어야 합니다.
-
-## 기존 PC 기록을 휴대폰으로 옮기기
-
-PC와 휴대폰은 **자동으로 동기화되지 않습니다.** 같은 주소로 접속해도 각 브라우저에 따로 저장됩니다.
-
-1. 기존 PC 화면 하단에서 **JSON 백업**을 누릅니다.
-2. 내려받은 JSON 파일을 휴대폰으로 옮깁니다.
-3. 휴대폰 화면 하단의 **백업 복원**을 눌러 그 파일을 선택합니다. 복원은 현재 휴대폰의 입력값을 교체합니다.
-
-브라우저·주소(IP/포트) 변경 또는 데이터 삭제 전에 JSON 백업을 보관하세요. APK나 금융계좌 로그인은 필요하지 않습니다. 네이버페이 계좌 자동 가져오기는 지원하지 않으며 계좌 잔액은 직접 입력합니다.
+- 기존 금융·저장·시세 회귀 및 Android 브리지 테스트: 81개 통과.
+- Android JVM URL 검증 테스트: 2개 통과.
+- `assembleDebug`, `bundleRelease`, `lintDebug` 성공. Lint 오류0개, 경고3개(신규 Android 속성, JavaScript 사용, 데이터 추출 규칙 안내). JavaScript는 APK 내장 React 화면에만 사용하고 외부 페이지는 브라우저로 엽니다.
+- `apksigner verify --verbose`로 debug APK v2 서명 검증 완료.
+- APK 내 화면 파일이 최신 dist와 일치하며 DEX·Manifest·시작 Activity·인터넷 권한을 확인했습니다. Node 실행 파일이나 웹 서버를 포함하지 않습니다.
+- 이 클라우드 환경에는 Android 기기/에뮬레이터가 연결되어 있지 않아 실기기 설치·터치·시스템 파일 선택 창 동작은 아직 직접 확인하지 못했습니다. APK 생성·서명·정적 검사와 단위 테스트를 실기기 검증으로 표현하지 않습니다.

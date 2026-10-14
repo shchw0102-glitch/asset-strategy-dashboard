@@ -1,3 +1,4 @@
+import { isAndroidApp, nativeRequest } from "./services/android";
 import { useStockMarkets } from "./services/useStockMarkets";
 import { effectiveStocks } from "./services/stocks";
 import { StockPanel } from "./services/StockPanel";
@@ -57,6 +58,10 @@ const pages = [
   },
 ];
 function download(content: string, name: string) {
+  if (isAndroidApp()) {
+    void nativeRequest("save", { content, name }, 600_000).catch((error) => window.alert(error.message));
+    return;
+  }
   const url = URL.createObjectURL(
     new Blob([content], { type: "application/json" }),
   );
@@ -187,7 +192,7 @@ export default function App() {
           <p>
             입력값은 이 브라우저에 저장됩니다.
             <br />
-            로그인 없이 내 PC에서 실행됩니다.
+            로그인 없이 내 기기에서 실행됩니다.
           </p>
           <span className="version">CONNECTED DATA · V2.0</span>
         </div>
