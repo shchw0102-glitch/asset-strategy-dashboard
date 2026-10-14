@@ -1,5 +1,7 @@
 # Asset Strategy Dashboard
 
+[**Android APK 다운로드**](https://github.com/shchw0102-glitch/asset-strategy-dashboard/raw/refs/heads/main/downloads/app-debug.apk) · [설치 안내](ANDROID.md)
+
 **Android 설치형 APK를 지원합니다.** PC·Node.js·Termux 없이 스마트폰에서 독립 실행합니다. 설치·기존 데이터 이전·APK/AAB 빌드 방법은 [ANDROID.md](ANDROID.md)를 확인하세요. 아래 Node.js 실행법은 PC 웹 버전용입니다.
 
 현재 자산·부채를 관리하고 CNTN·CC 가격, 분할매도, 추가 대출 투자, 아파트 매수에 따른 순자산을 계산하는 한국어 웹앱입니다. React + TypeScript + Vite와 Node.js 내장 HTTP 서버를 사용합니다. 앱과 로컬 시세 서버가 하나의 실행 명령으로 켜집니다. 회원가입, API 키, 데이터베이스 설치는 필요 없습니다.

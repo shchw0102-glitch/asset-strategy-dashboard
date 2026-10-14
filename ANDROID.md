@@ -2,6 +2,8 @@
 
 이 버전은 React 화면과 계산 코드를 APK 안에 포함한 실제 Android 앱입니다. **실행에 PC, Node.js, Termux 또는 별도 서버가 필요하지 않습니다.** Android 8.0 이상과 최신 Android System WebView/Chrome을 권장합니다. 인터넷 없이 계산·입력·저장·백업이 동작하며 시세 조회에만 인터넷이 필요합니다.
 
+[**설치 APK 바로 다운로드**](https://github.com/shchw0102-glitch/asset-strategy-dashboard/raw/refs/heads/main/downloads/app-debug.apk)
+
 ## 휴대폰에 설치하기
 
 1. 제공된 `app-debug.apk`를 휴대폰에 내려받습니다.
