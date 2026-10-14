@@ -4,15 +4,16 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24.10.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/run.mjs --dev",
     "build": "tsc --noEmit && vite build",
     "build:pages": "npm run build && node scripts/build-pages.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "start": "node scripts/run.mjs"
   },
   "dependencies": {
     "react": "19.3.0",
