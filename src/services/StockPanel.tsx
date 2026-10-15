@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import type { StockHolding } from "../strategy/types";
 import { NumberField, Panel, money, num, usd, won } from "../strategy/components";
 import { stockValue } from "../strategy/finance";
-import { effectiveStocks, fetchStock, stockCurrency, validStockSymbol, type StockQuote, type StockQuotes } from "./stocks";
+import { effectiveStocks, fetchStock, stockSymbolFromInput, stockCurrency, validStockSymbol, type StockQuote, type StockQuotes } from "./stocks";
 const stamp = (time: number) => new Date(time).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
 export function StockPanel({ stocks, exchangeRate, quotes, errors, now, onChange, accept }: {
   stocks: StockHolding[]; exchangeRate: number; quotes: StockQuotes;
@@ -18,14 +18,14 @@ export function StockPanel({ stocks, exchangeRate, quotes, errors, now, onChange
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [deleting, setDeleting] = useState("");
-  const symbol = code.trim().toUpperCase() + (exchange === "US" ? "" : `.${exchange}`);
+  const symbol = stockSymbolFromInput(code, exchange);
   const currency = stockCurrency(symbol);
   const effective = effectiveStocks(stocks, quotes);
   async function add(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
     setMessage("");
-    if (!validStockSymbol(symbol)) { setMessage("미국은 AAPL 같은 티커, 국내는 005930 같은 6자리 코드를 입력하세요."); return; }
+    if (!validStockSymbol(symbol)) { setMessage("미국은 AAPL 같은 티커, 국내는 005930, 0052D0 같은 6자리 영문·숫자 코드를 입력하세요."); return; }
     if (symbol === "CNTN") { setMessage("CNTN은 이미 기본 자산에 있습니다. 아래 CNTN 보유 수량을 수정하세요."); return; }
     if (stocks.some((s) => s.symbol === symbol)) { setMessage("이미 등록된 종목입니다. 기존 카드의 수량을 수정하세요."); return; }
     if (stocks.length >= 20) { setMessage("추가 주식은 최대 20종목까지 등록할 수 있습니다."); return; }
@@ -55,7 +55,7 @@ export function StockPanel({ stocks, exchangeRate, quotes, errors, now, onChange
             <label className="field"><span>거래소</span><select aria-label="거래소" value={exchange} onChange={(e) => setExchange(e.target.value)}>
               <option value="US">미국 (USD)</option><option value="KS">국내 코스피 (KRW)</option><option value="KQ">국내 코스닥 (KRW)</option>
             </select></label>
-            <label className="field"><span>종목코드</span><input value={code} onChange={(e) => setCode(e.target.value)} required maxLength={16} autoCapitalize="characters" autoComplete="off" spellCheck={false} placeholder={exchange === "US" ? "예: AAPL, TSLA, NVDA" : "예: 005930"} /></label>
+            <label className="field"><span>종목코드</span><input value={code} onChange={(e) => setCode(e.target.value)} required maxLength={16} autoCapitalize="characters" autoComplete="off" spellCheck={false} placeholder={exchange === "US" ? "예: AAPL, TSLA, NVDA" : "예: 005930, 0052D0"} /></label>
             <NumberField label="추가할 보유 수량" value={quantity} onChange={setQuantity} min={0.00000001} max={1e8} unit="주" />
             <label className="field"><span>새 종목 시세 방식</span><select aria-label="새 종목 시세 방식" value={mode} onChange={(e) => setMode(e.target.value as typeof mode)}><option value="auto">자동 조회</option><option value="manual">수동 입력 (오프라인 가능)</option></select></label>
             {mode === "manual" && <NumberField label="추가할 주식 가격" value={price} onChange={setPrice} unit={currency} max={currency === "USD" ? 1e6 : 1e8} />}

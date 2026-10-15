@@ -16,7 +16,8 @@
     "start": "node scripts/run.mjs",
     "android:prepare": "npm run build && node scripts/android-assets.mjs",
     "android:debug": "npm run android:prepare && cd android && ./gradlew assembleDebug",
-    "android:bundle": "npm run android:prepare && cd android && ./gradlew bundleRelease"
+    "android:bundle": "npm run android:prepare && cd android && ./gradlew bundleRelease",
+    "android": "npm run android:debug"
   },
   "dependencies": {
     "react": "19.3.0",

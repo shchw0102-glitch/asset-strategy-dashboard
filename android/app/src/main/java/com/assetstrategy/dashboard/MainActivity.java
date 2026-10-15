@@ -124,12 +124,13 @@ public class MainActivity extends Activity {
         }
     }
     static boolean allowedQuoteUrl(String raw) {
+        if (raw == null || raw.chars().anyMatch(Character::isWhitespace)) return false;
         try {
             URL url = new URL(raw);
             if (!url.getProtocol().equals("https") || url.getUserInfo() != null || url.getPort() != -1 || url.getRef() != null) return false;
             if (url.getHost().equals("api.upbit.com")) return url.getPath().equals("/v1/ticker") && "markets=KRW-CC".equals(url.getQuery());
             if (!url.getHost().equals("query1.finance.yahoo.com") && !url.getHost().equals("query2.finance.yahoo.com")) return false;
-            return "interval=1m&range=1d".equals(url.getQuery()) && url.getPath().matches("/v8/finance/chart/(?:[A-Z]{1,10}(?:[.-][A-Z]{1,2})?|[0-9]{6}\\.K[QS]|KRW%3DX)");
+            return "interval=1m&range=1d".equals(url.getQuery()) && url.getPath().matches("/v8/finance/chart/(?:[A-Z0-9]{6}\\.K[QS]|(?!.*\\.K[QS]$)[A-Z]{1,10}(?:[.-][A-Z]{1,2})?|KRW%3DX)");
         } catch (Exception e) { return false; }
     }
     private void fetchQuote(String id, String address) {

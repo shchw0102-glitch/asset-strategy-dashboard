@@ -1,8 +1,8 @@
 import { stockSnapshot } from "./quoteTransport";
 import type { StockHolding } from "../strategy/types";
-export const validStockSymbol = (symbol: unknown): symbol is string => typeof symbol === "string" &&
-  /^(?:[A-Z]{1,10}(?:[.-][A-Z]{1,2})?|[0-9]{6}\.K[QS])$/.test(symbol);
-export const stockCurrency = (symbol: string): "USD" | "KRW" => /^\d{6}\.K[QS]$/.test(symbol) ? "KRW" : "USD";
+export const validStockSymbol = (symbol: unknown): symbol is string => typeof symbol === "string" && !/\s/.test(symbol) &&
+  /^(?:[A-Z0-9]{6}\.K[QS]|(?!.*\.K[QS]$)[A-Z]{1,10}(?:[.-][A-Z]{1,2})?)$/.test(symbol);
+export const stockCurrency = (symbol: string): "USD" | "KRW" => /^[A-Z0-9]{6}\.K[QS]$/.test(symbol) ? "KRW" : "USD";
 export interface StockQuote {
   symbol: string; name: string; currency: "USD" | "KRW"; price: number;
   asOf: number; receivedAt: number; source: "Yahoo Finance";
@@ -50,4 +50,8 @@ export async function fetchStock(symbol: string, signal?: AbortSignal): Promise<
   if (!data.quote && typeof data.error === "string") return { quote: null, error: data.error };
   if (!validStockQuote(data.quote, symbol)) throw new Error("종목·통화·시세 응답을 검증하지 못했습니다.");
   return { quote: data.quote, error: typeof data.error === "string" ? data.error : null };
+}
+
+export function stockSymbolFromInput(code: string, exchange: string): string {
+  return code.trim().toUpperCase() + (exchange === "US" ? "" : `.${exchange}`);
 }

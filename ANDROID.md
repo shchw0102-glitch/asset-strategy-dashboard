@@ -69,3 +69,16 @@ PC/브라우저 실행 방식은 그대로 지원합니다. 이전 Wi-Fi 및 Ter
 - `apksigner verify --verbose`로 debug APK v2 서명 검증 완료.
 - APK 내 화면 파일이 최신 dist와 일치하며 DEX·Manifest·시작 Activity·인터넷 권한을 확인했습니다. Node 실행 파일이나 웹 서버를 포함하지 않습니다.
 - 이 클라우드 환경에는 Android 기기/에뮬레이터가 연결되어 있지 않아 실기기 설치·터치·시스템 파일 선택 창 동작은 아직 직접 확인하지 못했습니다. APK 생성·서명·정적 검사와 단위 테스트를 실기기 검증으로 표현하지 않습니다.
+
+## GitHub에서 APK 직접 만들기
+
+1. 저장소의 **Actions** 탭을 엽니다.
+2. 왼쪽 **Android APK build**를 누릅니다.
+3. **Run workflow**를 누르고 브랜치 **main**을 선택한 뒤 실행합니다.
+4. 새 실행 항목을 열고 초록색 체크가 나올 때까지 기다립니다.
+5. 화면 아래 **Artifacts → asset-strategy-debug-apk**를 눌러 ZIP을 내려받습니다. GitHub 로그인이 필요합니다.
+6. 압축을 풀면 `app-debug.apk`와 `SHA256SUMS`가 나옵니다. APK를 휴대폰으로 옮겨 설치하세요.
+
+이 설정은 `.github/workflows/android-build.yml`에 있습니다. npm ci → 테스트 → 타입 검사 → 웹 빌드 → android:debug → Android 테스트 → APK 서명 검사 후 artifact를 업로드합니다. 실패하면 APK 업로드로 넘어가지 않습니다. 보관 기간은30일입니다. CI에서 만든 디버그 APK는 실행마다 서명키가 달라질 수 있으므로 기존 배포 APK를 덮어 설치하지 못하면 먼저 JSON 백업을 보관하세요. 같은 소스를 빌드하지만 바이너리와 서명까지 동일하다는 의미는 아닙니다.
+
+`npm run android`도 이제 `npm run android:debug`와 같은 빌드를 수행합니다. 1.0.1에서는 국내 코드 `0052D0`처럼 영문 대문자와 숫자가 섞인6자리를 지원합니다. 소문자 입력은 대문자로 바뀝니다. Yahoo에 해당 종목 데이터가 있어야 실제 시세 조회에 성공합니다.

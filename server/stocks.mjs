@@ -1,7 +1,7 @@
 // 고정된 Yahoo 호스트의 주식/ETF 공개 시세만 조회합니다.
-export const validStockSymbol = (symbol) => typeof symbol === "string" &&
-  /^(?:[A-Z]{1,10}(?:[.-][A-Z]{1,2})?|[0-9]{6}\.K[QS])$/.test(symbol);
-export const stockCurrency = (symbol) => /^\d{6}\.K[QS]$/.test(symbol) ? "KRW" : "USD";
+export const validStockSymbol = (symbol) => typeof symbol === "string" && !/\s/.test(symbol) &&
+  /^(?:[A-Z0-9]{6}\.K[QS]|(?!.*\.K[QS]$)[A-Z]{1,10}(?:[.-][A-Z]{1,2})?)$/.test(symbol);
+export const stockCurrency = (symbol) => /^[A-Z0-9]{6}\.K[QS]$/.test(symbol) ? "KRW" : "USD";
 export function parseStock(data, symbol, now = Date.now()) {
   const meta = data?.chart?.result?.[0]?.meta;
   const time = meta?.regularMarketTime * 1000;
